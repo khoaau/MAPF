@@ -28,23 +28,8 @@ class PrioritizedPlanningSolver(object):
 
         start_time = timer.time()
         result = []
-        constraints = [
-                        {
-                            'agent': 1,
-                            'loc': [(1,4)],
-                            'timestep': 2
-                        },
-                        {
-                            'agent': 1,
-                            'loc': [(1,3)],
-                            'timestep': 2
-                        },
-                        {
-                            'agent': 1,
-                            'loc': [(1,2)],
-                            'timestep': 2
-                        }]
-
+        constraints = []
+        #{'agent':0, 'loc':[(1,5)], 'timestep': 10}
         for i in range(self.num_of_agents):  # Find path for each agent
             path = a_star(self.my_map, self.starts[i], self.goals[i], self.heuristics[i],
                           i, constraints)
@@ -58,8 +43,21 @@ class PrioritizedPlanningSolver(object):
             #            * path contains the solution path of the current (i'th) agent, e.g., [(1,1),(1,2),(1,3)]
             #            * self.num_of_agents has the number of total agents
             #            * constraints: array of constraints to consider for future A* searches
-
-
+            for element in range(len(path)): # Here need use element to keep track of timestep
+                # print("timestep: ",element, " -- ", path[element])
+                for j in range(i+1, self.num_of_agents): # 2.1 Iterate from i+1 because agent i and before it doesnt need these new constraints
+                    new_constraint ={'agent': j,
+                                     'loc': [path[element]],     
+                                     'timestep': element 
+                                    }
+                    constraints.append(new_constraint)
+                    if element > 0: # 2.2 Add Edge Constraints. Because 0 does not have previous step, we need to check for time step > 0.
+                        edge_constrain ={'agent': j,
+                                         'loc': [path[element-1], path[element]],
+                                         'timestep': element
+                                        }
+                        constraints.append(edge_constrain)
+            # print("updated constraints: ", constraints)
             ##############################
 
         self.CPU_time = timer.time() - start_time
