@@ -21,7 +21,7 @@ def compute_heuristics(my_map, goal):
     closed_list[goal] = root
     while len(open_list) > 0:
         (cost, loc, curr) = heapq.heappop(open_list)
-        for dir in range(4):
+        for dir in range(5):
             child_loc = move(loc, dir)
             child_cost = cost + 1
             if child_loc[0] < 0 or child_loc[0] >= len(my_map) \
@@ -149,11 +149,10 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     root = {'loc': start_loc, 'g_val': 0, 'h_val': h_value, 'parent': None, "timestep": 0}
     push_node(open_list, root)
     closed_list[(root['loc'],root['timestep'])] = root #k
+    # time_limit = 0
     while len(open_list) > 0:
         curr = pop_node(open_list)
-
-
-
+        # time_limit += 1
         #############################
 
         # Task 1.4: Adjust the goal test condition to handle goal constraints
@@ -170,7 +169,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
             constraint_for_agent = constraint_for_agent + append_tmp
             earliest_goal_timestep = curr['timestep']+1
         ################################################
-        print("time: ", curr['timestep'])
+        # print("table of constraint update: ", constraint_for_agent)
 
         for dir in range(5):
             child_loc = move(curr['loc'], dir)
