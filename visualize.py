@@ -21,6 +21,8 @@ class Animation:
             for path in paths:
                 self.paths.append([])
                 for loc in path:
+                    # print("self.path is: ", self.paths)
+                    # print("loc is: ", loc)
                     self.paths[-1].append((loc[1], len(self.my_map[0]) - 1 - loc[0]))
 
         aspect = len(self.my_map) / len(self.my_map[0])

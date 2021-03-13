@@ -55,14 +55,14 @@ def build_constraint_table(constraints, agent):
     #               is_constrained function.
 
     table = []      # table to store constraint for specific agent
-    largest_timestep = 0
+    latest_timestep = 0
     for constraint in constraints: 
         if agent == constraint['agent']:  #extract speficic constraint for agent on constraints table
-            if largest_timestep < constraint['timestep']:
-                largest_timestep = constraint['timestep']
+            if latest_timestep < constraint['timestep']:
+                latest_timestep = constraint['timestep']
             new_contraint = {constraint['timestep']: constraint['loc']}
             table.append(new_contraint) #index by timestep and value with cell location
-    return table, largest_timestep
+    return table, latest_timestep
 
 
 def get_location(path, time):
@@ -89,7 +89,6 @@ def is_constrained(curr_loc, next_loc, next_time, constraint_table):
     # Task 1.2/1.3: Check if a move from curr_loc to next_loc at time step next_time violates
     #               any given constraint. For efficiency the constraints are indexed in a constraint_table
     #               by time step, see build_constraint_table.
-
     for constraint in constraint_table:
         # print("constrain in checking: "constraint)
         if next_time in constraint:
@@ -143,32 +142,25 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
 
     #1.2 Check for constraints
     # Pre-processing table constraints
-    constraint_for_agent, earliest_goal_timestep = build_constraint_table(constraints, agent)
+    constraint_for_agent, latest_timestep = build_constraint_table(constraints[1:], agent)   #constraints start from index 1, because index 0 store upper bound value
     # print("table of constraint: ", constraint_for_agent)
 
     root = {'loc': start_loc, 'g_val': 0, 'h_val': h_value, 'parent': None, "timestep": 0}
     push_node(open_list, root)
     closed_list[(root['loc'],root['timestep'])] = root #k
-    # time_limit = 0
+
+    earliest_goal_timestep = constraints[0]['earliest_goal_timestep']
+    if earliest_goal_timestep < latest_timestep:
+        earliest_goal_timestep = latest_timestep
+    print("earliest_goal_timestep: ",earliest_goal_timestep)
     while len(open_list) > 0:
         curr = pop_node(open_list)
-        # time_limit += 1
+        # print("current timestep",curr['timestep'], "current loc", curr['loc'])
         #############################
-
         # Task 1.4: Adjust the goal test condition to handle goal constraints
-        if curr['loc'] == goal_loc and curr['timestep'] >= earliest_goal_timestep:
+        if curr['loc'] == goal_loc and curr['timestep'] > earliest_goal_timestep -1:
             return get_path(curr)
 
-        if curr['timestep'] == earliest_goal_timestep and earliest_goal_timestep != 0: #2.3 Check the constraints table is not empty
-            append_tmp = [] #add a temporary list because cant append directly to constraint_for_agent (will cause loop run forever)
-            for constraint_element in constraint_for_agent: #goes through the list to take the lastest time step constraint
-                if earliest_goal_timestep in constraint_element:
-                    extend_constraint = {curr['timestep']+1: constraint_element[earliest_goal_timestep]}
-                    append_tmp.append(extend_constraint)
-
-            constraint_for_agent = constraint_for_agent + append_tmp
-            earliest_goal_timestep = curr['timestep']+1
-        ################################################
         # print("table of constraint update: ", constraint_for_agent)
 
         for dir in range(5):
@@ -176,9 +168,12 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
             ## 1.2 Check if a move is violate any constraint
             if is_constrained(curr['loc'], child_loc, curr['timestep']+1, constraint_for_agent):
                 continue
-
+            # Check if it goes out of map
+            if child_loc[0] < 0 or child_loc[1] <0 or child_loc[0] >= len(my_map) or child_loc[1] >= len(my_map[0]):
+                continue
             if my_map[child_loc[0]][child_loc[1]]:
                 continue 
+
             child = {'loc': child_loc,
                     'g_val': curr['g_val'] + 1,
                     'h_val': h_values[child_loc],
