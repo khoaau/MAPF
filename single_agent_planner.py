@@ -143,19 +143,19 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     #1.2 Check for constraints
     # Pre-processing table constraints
     constraint_for_agent, latest_timestep = build_constraint_table(constraints[1:], agent)   #constraints start from index 1, because index 0 store upper bound value
-    # print("table of constraint: ", constraint_for_agent)
+    print("table of constraint: ", constraint_for_agent)
 
     root = {'loc': start_loc, 'g_val': 0, 'h_val': h_value, 'parent': None, "timestep": 0}
     push_node(open_list, root)
     closed_list[(root['loc'],root['timestep'])] = root #k
 
     earliest_goal_timestep = constraints[0]['earliest_goal_timestep']
-    if earliest_goal_timestep < latest_timestep:
+    if earliest_goal_timestep < latest_timestep and constraints[0]['algo'] == "CBS":
         earliest_goal_timestep = latest_timestep
     print("earliest_goal_timestep: ",earliest_goal_timestep)
     while len(open_list) > 0:
         curr = pop_node(open_list)
-        # print("current timestep",curr['timestep'], "current loc", curr['loc'])
+        print("current timestep",curr['timestep'], "current loc", curr['loc'])
         #############################
         # Task 1.4: Adjust the goal test condition to handle goal constraints
         if curr['loc'] == goal_loc and curr['timestep'] > earliest_goal_timestep -1:

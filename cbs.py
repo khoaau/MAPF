@@ -151,7 +151,7 @@ class CBSSolver(object):
         #               [[(x11, y11), (x12, y12), ...], [(x21, y21), (x22, y22), ...], ...]
         # collisions     - list of collisions in paths
         root = {'cost': 0,
-                'constraints': [{"earliest_goal_timestep": -1}],
+                'constraints': [{"earliest_goal_timestep": -1, "algo": "CBS"}],
                 'paths': [],
                 'collisions': []}
         for i in range(self.num_of_agents):  # Find initial path for each agent
@@ -159,8 +159,7 @@ class CBSSolver(object):
                           i, root['constraints'])
             if path is None:
                 raise BaseException('No solutions')
-            print("root paths", path)
-            print("path len: ", len(path))
+
             root['paths'].append(path)
             # if  root['constraints'][0]['earliest_goal_timestep'] == -1 or root['constraints'][0]['earliest_goal_timestep'] > len(path):
             #     root['constraints'][0]['earliest_goal_timestep'] = len(path) -1
@@ -168,8 +167,7 @@ class CBSSolver(object):
         root['cost'] = get_sum_of_cost(root['paths'])
         root['collisions'] = detect_collisions(root['paths'])
         self.push_node(root)
-        print("root path is ", root['paths'])
-        print("root cost is ", root['cost'])
+
 
         # Task 3.1: Testing
         print(root['collisions'])
@@ -191,7 +189,7 @@ class CBSSolver(object):
             
             #Return if the node has no collision
             if len(curr['collisions']) == 0:
-                self.print_results(root)
+                self.print_results(curr)
                 return curr['paths']
 
             collision = curr['collisions'][0]
@@ -207,7 +205,6 @@ class CBSSolver(object):
                 child['paths'] = curr['paths'].copy()
                 agent = constraint['agent']
                 print("AGENT: ", agent)
-                print("constraints for agent: ", child['constraints'])
                 path = a_star(self.my_map, self.starts[agent], self.goals[agent], self.heuristics[agent],
                             agent, child['constraints'])
 
@@ -221,7 +218,6 @@ class CBSSolver(object):
                     child['cost'] = get_sum_of_cost(child['paths'])
                     print("child node is: ", child)
                     self.push_node(child)
-                print("helooooo there\n")
         return 'No Solution'
         # self.print_results(root)
         # return root['paths']

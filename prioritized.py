@@ -28,7 +28,7 @@ class PrioritizedPlanningSolver(object):
 
         start_time = timer.time()
         result = []
-        constraints = [{"earliest_goal_timestep": -1}]        # I used the first index to store the upper bound value, first it's = size of environment
+        constraints = [{"earliest_goal_timestep": -1, "algo": "Prioritized"}]        # I used the first index to store the upper bound value, first it's = size of environment
         #{'agent':0, 'loc':[(1,5)], 'timestep': 10}
 
         ##Calculate upper bound
@@ -47,7 +47,7 @@ class PrioritizedPlanningSolver(object):
                 constraints[0]['earliest_goal_timestep'] = len(path) -1
 
             upper_bound += len(path)    #Update upper bound
-
+            print("path is:", path)
             result.append(path)
             ##############################
             # Task 2: Add constraints here
