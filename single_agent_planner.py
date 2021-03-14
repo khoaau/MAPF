@@ -58,10 +58,18 @@ def build_constraint_table(constraints, agent):
     latest_timestep = 0
     for constraint in constraints: 
         if agent == constraint['agent']:  #extract speficic constraint for agent on constraints table
-            if latest_timestep < constraint['timestep']:
-                latest_timestep = constraint['timestep']
-            new_contraint = {constraint['timestep']: constraint['loc']}
-            table.append(new_contraint) #index by timestep and value with cell location
+            #Negative constraint
+            if constraint['positive'] == False:
+                if latest_timestep < constraint['timestep']:  # Use for CBS
+                    latest_timestep = constraint['timestep']
+            
+                new_contraint = {constraint['timestep']: constraint['loc'], "positive": 0}
+                table.append(new_contraint) #index by timestep and value with cell location
+            #Positive constraint
+            elif constraint['positive'] == True:
+                new_contraint = {constraint['timestep']: constraint['loc'], "positive": 1}
+                table.append(new_contraint)
+
     return table, latest_timestep
 
 
@@ -90,17 +98,31 @@ def is_constrained(curr_loc, next_loc, next_time, constraint_table):
     #               any given constraint. For efficiency the constraints are indexed in a constraint_table
     #               by time step, see build_constraint_table.
     for constraint in constraint_table:
-        # print("constrain in checking: "constraint)
+        # print("constrain in checking: ",constraint)
         if next_time in constraint:
             if (len(constraint[next_time]) == 2):  #Edge constraint will have 2 cell locations
-                if curr_loc == constraint[next_time][0] and next_loc == constraint[next_time][1]:   #Check for all conditions
-                    return True  
-                elif curr_loc == constraint[next_time][1] and next_loc == constraint[next_time][0]: #2.2 Check if agent 1 goes from x to y and 
-                    return True                                                                     # agent 2 goes from y to x        
+                # Negative constraint:
+                if constraint['positive'] == 0:
+                    if curr_loc == constraint[next_time][0] and next_loc == constraint[next_time][1]:   #Check for all conditions
+                        return True  
+                    elif curr_loc == constraint[next_time][1] and next_loc == constraint[next_time][0]: #2.2 Check if agent 1 goes from x to y and 
+                        return True                                                                  # agent 2 goes from y to x     
+                else:
+                    if curr_loc == constraint[next_time][0] and next_loc != constraint[next_time][1]:   #Check for all conditions
+                        return True  
+                    elif curr_loc == constraint[next_time][1] and next_loc != constraint[next_time][0]: 
+                        return True    
+
             else: #Else normally do it
                 # for loc in constraint[next_time]:
-                if next_loc == constraint[next_time][0]:
-                    return True
+                # Negative constraint
+                if constraint['positive'] == 0:
+                    if next_loc == constraint[next_time][0]:
+                        return True
+                # Positive constraint. 
+                else:
+                    if next_loc != constraint[next_time][0]:       # Only return if next loc is constraint loc, prohibit other location. 
+                        return True
     return False
 
 
@@ -143,7 +165,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     #1.2 Check for constraints
     # Pre-processing table constraints
     constraint_for_agent, latest_timestep = build_constraint_table(constraints[1:], agent)   #constraints start from index 1, because index 0 store upper bound value
-    print("table of constraint: ", constraint_for_agent)
+    # print("table of constraint: ", constraint_for_agent)
 
     root = {'loc': start_loc, 'g_val': 0, 'h_val': h_value, 'parent': None, "timestep": 0}
     push_node(open_list, root)
@@ -152,10 +174,10 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
     earliest_goal_timestep = constraints[0]['earliest_goal_timestep']
     if earliest_goal_timestep < latest_timestep and constraints[0]['algo'] == "CBS":
         earliest_goal_timestep = latest_timestep
-    print("earliest_goal_timestep: ",earliest_goal_timestep)
+    # print("earliest_goal_timestep: ",earliest_goal_timestep)
     while len(open_list) > 0:
         curr = pop_node(open_list)
-        print("current timestep",curr['timestep'], "current loc", curr['loc'])
+        # print("current timestep",curr['timestep'], "current loc", curr['loc'])
         #############################
         # Task 1.4: Adjust the goal test condition to handle goal constraints
         if curr['loc'] == goal_loc and curr['timestep'] > earliest_goal_timestep -1:

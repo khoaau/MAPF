@@ -62,20 +62,23 @@ class PrioritizedPlanningSolver(object):
                     if element < len(path):
                         new_constraint = {'agent': j,
                                         'loc': [path[element]],     
-                                        'timestep': element 
+                                        'timestep': element,
+                                        'positive': False 
                                         }
                         constraints.append(new_constraint)
                         if element > 0: # 2.2 Add Edge Constraints. Because 0 does not have previous step, we need to check for time step > 0.
                             edge_constrain ={'agent': j,
                                             'loc': [path[element-1], path[element]],
-                                            'timestep': element
+                                            'timestep': element,
+                                            'positive': False
                                             }
                             constraints.append(edge_constrain)
                     else:
                         for goal in range(0, i+1):
                             goal_location = {'agent': j,
                                             'loc': [self.goals[goal]],     
-                                            'timestep': element 
+                                            'timestep': element,
+                                            'positive': False
                                             }
                             constraints.append(goal_location)
                     
